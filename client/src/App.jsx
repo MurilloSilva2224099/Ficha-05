@@ -46,17 +46,17 @@ function App() {
       });
   }, [filter]);
 
-  // Pesquisar cartas pelo nome
+  // Pesquisa
   let visible = cards.filter((card) =>
     card.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Ordenar cartas por ataque
+  // Ordenar por ataque
   if (sorted) {
     visible = [...visible].sort((a, b) => b.attack - a.attack);
   }
 
-  // Escolher carta aleatória
+  // Carta aleatória
   function pickRandom() {
     fetch("http://localhost:3000/api/cartas/aleatoria")
       .then((res) => {
@@ -74,7 +74,7 @@ function App() {
       });
   }
 
-  // Adicionar carta ao servidor
+  // Adicionar carta através do POST
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -101,9 +101,10 @@ function App() {
         return;
       }
 
+      // Receber a carta devolvida pelo servidor
       const newCard = await response.json();
 
-      // Adicionar a carta que o servidor devolveu
+      // Adicionar a carta à lista
       setCards((previousCards) => [...previousCards, newCard]);
 
       // Limpar formulário
@@ -125,7 +126,7 @@ function App() {
         Tenho {cards.length} cartas · a mostrar {visible.length}
       </p>
 
-      {/* FORMULÁRIO PARA ADICIONAR CARTAS */}
+      {/* Formulário para adicionar cartas */}
       <h2>Adicionar carta</h2>
 
       <form onSubmit={handleSubmit}>
@@ -157,14 +158,14 @@ function App() {
         </button>
       </form>
 
-      {/* ERRO DO FORMULÁRIO */}
+      {/* Erro do formulário */}
       {formError && (
         <p style={{ color: "red" }}>
           {formError}
         </p>
       )}
 
-      {/* FILTROS */}
+      {/* Filtros */}
       <div>
         <button onClick={() => setFilter("Todas")}>
           Todas
@@ -183,24 +184,22 @@ function App() {
         </button>
       </div>
 
-      {/* PESQUISA */}
+      {/* Pesquisa */}
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Procurar pelo nome…"
       />
 
-      {/* CARREGAMENTO */}
+      {/* Carregamento */}
       {loading && <p>A carregar...</p>}
 
-      {/* ERRO AO CARREGAR CARTAS */}
+      {/* Erro de carregamento */}
       {error && (
-        <p>
-          Erro ao carregar as cartas: {error}
-        </p>
+        <p>Erro ao carregar as cartas: {error}</p>
       )}
 
-      {/* LISTA DE CARTAS */}
+      {/* Lista de cartas */}
       {!loading && !error && (
         <>
           {visible.length === 0 ? (
@@ -208,14 +207,14 @@ function App() {
           ) : (
             <ul>
               {visible.map((card) => (
-                <Card key={card.id || card.name} {...card} />
+                <Card key={card.name} {...card} />
               ))}
             </ul>
           )}
         </>
       )}
 
-      {/* CARTA ALEATÓRIA */}
+      {/* Carta aleatória */}
       <h2>Carta à sorte</h2>
 
       <button onClick={pickRandom}>

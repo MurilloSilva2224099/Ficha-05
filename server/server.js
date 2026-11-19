@@ -56,7 +56,7 @@ app.get("/sobre", (req, res) => {
   ));
 });
 
-// Página de cartas
+// Página das cartas
 app.get("/cartas", (req, res) => {
   const items = cards
     .map((card) => `<li><b>${card.name}</b> — ${card.type}, ataque ${card.attack}</li>`)
@@ -104,7 +104,7 @@ app.get("/api/cartas/aleatoria", (req, res) => {
   res.json(card);
 });
 
-// POST - Adicionar uma carta
+// POST - Adicionar carta
 app.post("/api/cartas", (req, res) => {
   const card = req.body;
 
@@ -125,4 +125,4 @@ app.use((req, res) => {
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Server a correr em http://localhost:${PORT}`);
-});  
+});
