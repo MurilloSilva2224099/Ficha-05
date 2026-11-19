@@ -189,6 +189,20 @@ app.post("/api/cartas", (req, res) => {
 
     const card = req.body;
 
+    // Verificar se a carta tem nome
+    if (!card.name || card.name.trim() === "") {
+        return res.status(400).json({
+            erro: "A carta precisa de um nome."
+        });
+    }
+
+    // Verificar se a carta tem tipo
+    if (!card.type || card.type.trim() === "") {
+        return res.status(400).json({
+            erro: "A carta precisa de um tipo."
+        });
+    }
+
     // Adicionar carta ao array
     cards.push(card);
 

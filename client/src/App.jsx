@@ -96,6 +96,7 @@ function App() {
         body: JSON.stringify(card),
       });
 
+      // Verificar se ocorreu um erro
       if (!response.ok) {
         setFormError(`HTTP ${response.status}`);
         return;
