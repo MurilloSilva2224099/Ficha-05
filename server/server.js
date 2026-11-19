@@ -1,128 +1,218 @@
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const PORT = 3000;
 
-// Configuração do CORS
+// CORS
 app.use(cors({
-  origin: "http://localhost:5173"
+    origin: "http://localhost:5173"
 }));
 
-// Permitir receber JSON
+// Permite receber JSON
 app.use(express.json());
 
-const cards = [
-  { name: "Dragão de Cobalto", type: "Criatura", attack: 7, defense: 5 },
-  { name: "Guardiã das Marés", type: "Criatura", attack: 4, defense: 8 },
-  { name: "Rito de Ferro", type: "Feitiço", attack: 0, defense: 0 },
-  { name: "Sentinela de Âmbar", type: "Criatura", attack: 6, defense: 6 },
-  { name: "Eco do Vazio", type: "Feitiço", attack: 0, defense: 0 },
-];
+// Ficheiro onde as cartas ficam guardadas
+const FILE = path.join(__dirname, "cartas.json");
 
+// Ler as cartas do ficheiro quando o servidor inicia
+let cards = JSON.parse(fs.readFileSync(FILE, "utf8"));
+
+// Função para criar páginas HTML
 function page(title, body) {
-  return `<!DOCTYPE html>
-<html lang="pt">
-  <head>
-    <meta charset="utf-8">
-    <title>${title}</title>
-  </head>
-  <body>
-    <nav>
-      <a href="/">Início</a> ·
-      <a href="/cartas">Cartas</a> ·
-      <a href="/sobre">Sobre</a> ·
-      <a href="/agora">Agora</a>
-    </nav>
-    <h1>${title}</h1>
-    ${body}
-  </body>
-</html>`;
+    return `
+    <!DOCTYPE html>
+    <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                background-color: #f4f4f4;
+            }
+
+            nav {
+                margin-bottom: 20px;
+            }
+
+            nav a {
+                margin-right: 15px;
+                text-decoration: none;
+                color: blue;
+            }
+
+            h1 {
+                color: #333;
+            }
+
+            .card {
+                background: white;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 8px;
+            }
+        </style>
+    </head>
+    <body>
+
+        <nav>
+            <a href="/">Início</a>
+            <a href="/cartas">Cartas</a>
+            <a href="/sobre">Sobre</a>
+            <a href="/agora">Agora</a>
+        </nav>
+
+        ${body}
+
+    </body>
+    </html>
+    `;
 }
 
 // Página inicial
 app.get("/", (req, res) => {
-  res.send(page(
-    "A minha coleção",
-    `<p>Neste momento tenho <b>${cards.length}</b> cartas na coleção.</p>`
-  ));
+    res.send(page(
+        "Início",
+        `
+        <h1>Bem-vindo à aplicação de cartas!</h1>
+        <p>Existem atualmente ${cards.length} cartas.</p>
+        <p>Consulta as cartas disponíveis na aplicação.</p>
+        `
+    ));
 });
 
 // Página sobre
 app.get("/sobre", (req, res) => {
-  res.send(page(
-    "Sobre",
-    `<p>Feito por <b>&lt;Murillo Silva&gt;</b>, turma &lt;TGPSI24T&gt;.</p>`
-  ));
+    res.send(page(
+        "Sobre",
+        `
+        <h1>Sobre</h1>
+        <p>Esta aplicação permite consultar cartas.</p>
+        <p>Foi desenvolvida utilizando Node.js e Express.</p>
+        `
+    ));
 });
 
-// Página das cartas
+// Página com todas as cartas
 app.get("/cartas", (req, res) => {
-  const items = cards
-    .map((card) => `<li><b>${card.name}</b> — ${card.type}, ataque ${card.attack}</li>`)
-    .join("");
 
-  res.send(page("Cartas", `<ul>${items}</ul>`));
+    const lista = cards.map(card => `
+        <div class="card">
+            <h2>${card.name}</h2>
+            <p>Tipo: ${card.type}</p>
+            <p>Ataque: ${card.attack}</p>
+            <p>Defesa: ${card.defense ?? "Não definida"}</p>
+        </div>
+    `).join("");
+
+    res.send(page(
+        "Cartas",
+        `
+        <h1>Lista de cartas</h1>
+        ${lista}
+        `
+    ));
 });
 
-// Carta aleatória em HTML
+// Página com uma carta aleatória
 app.get("/cartas/aleatoria", (req, res) => {
-  const card = cards[Math.floor(Math.random() * cards.length)];
 
-  res.send(page(
-    "Carta à sorte",
-    `<h2>${card.name}</h2>
-     <p>${card.type} · ataque ${card.attack} · defesa ${card.defense}</p>`
-  ));
+    const card = cards[Math.floor(Math.random() * cards.length)];
+
+    if (!card) {
+        return res.send(page(
+            "Carta aleatória",
+            "<h1>Não existem cartas disponíveis.</h1>"
+        ));
+    }
+
+    res.send(page(
+        "Carta aleatória",
+        `
+        <div class="card">
+            <h1>${card.name}</h1>
+            <p>Tipo: ${card.type}</p>
+            <p>Ataque: ${card.attack}</p>
+            <p>Defesa: ${card.defense ?? "Não definida"}</p>
+        </div>
+        `
+    ));
 });
 
-// Página com a hora atual
+// Página com a data e hora
 app.get("/agora", (req, res) => {
-  const now = new Date().toLocaleString("pt-PT", {
-    dateStyle: "long",
-    timeStyle: "medium",
-  });
 
-  res.send(page("Agora", `<p>Este pedido foi respondido às <b>${now}</b>.</p>`));
+    const data = new Date();
+
+    res.send(page(
+        "Agora",
+        `
+        <h1>Data e hora atuais</h1>
+        <p>${data.toLocaleString("pt-PT")}</p>
+        `
+    ));
 });
 
-// GET - Todas as cartas ou filtradas por tipo
+// API GET - listar cartas
 app.get("/api/cartas", (req, res) => {
-  const tipo = req.query.tipo;
 
-  const resultado = tipo
-    ? cards.filter((card) => card.type === tipo)
-    : cards;
+    const tipo = req.query.tipo;
 
-  res.json(resultado);
+    if (tipo) {
+        const filtradas = cards.filter(card => card.type === tipo);
+        return res.json(filtradas);
+    }
+
+    res.json(cards);
 });
 
-// GET - Carta aleatória em JSON
+// API GET - carta aleatória
 app.get("/api/cartas/aleatoria", (req, res) => {
-  const card = cards[Math.floor(Math.random() * cards.length)];
 
-  res.json(card);
+    if (cards.length === 0) {
+        return res.status(404).json({
+            erro: "Não existem cartas disponíveis."
+        });
+    }
+
+    const card = cards[Math.floor(Math.random() * cards.length)];
+
+    res.json(card);
 });
 
-// POST - Adicionar carta
+// API POST - adicionar carta
 app.post("/api/cartas", (req, res) => {
-  const card = req.body;
 
-  cards.push(card);
+    const card = req.body;
 
-  res.status(201).json(card);
+    // Adicionar carta ao array
+    cards.push(card);
+
+    // Guardar as cartas no ficheiro JSON
+    fs.writeFileSync(
+        FILE,
+        JSON.stringify(cards, null, 2)
+    );
+
+    // Responder com a carta adicionada
+    res.status(201).json(card);
 });
 
-// Página 404
+// Rota não encontrada
 app.use((req, res) => {
-  res.status(404).send(page(
-    "404 — não encontrado",
-    `<p>Não existe nada em <code>${req.url}</code>.</p>
-     <p><a href="/">Voltar ao início</a></p>`
-  ));
+    res.status(404).send(
+        page(
+            "Erro 404",
+            "<h1>Erro 404 - Página não encontrada</h1>"
+        )
+    );
 });
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Server a correr em http://localhost:${PORT}`);
+    console.log(`Servidor a funcionar em http://localhost:${PORT}`);
 });
